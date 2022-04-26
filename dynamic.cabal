@@ -1,0 +1,27 @@
+cabal-version: 3.0
+name:          dynamic
+version:       0.1.0.0
+license:       ISC
+license-file:  LICENSE
+copyright:     Kevin Mullins 2022
+maintainer:    kevin@pnotequalnp.com
+author:        Kevin Mullins
+tested-with:   ghc ==8.10.7 || ==9.2.1
+homepage:      https://github.com/pnotequalnp/dynamic
+bug-reports:   https://github.com/pnotequalnp/dynamic/issues
+synopsis:      Dynamic Typing
+description:   Dynamically typed data
+category:      Data
+
+source-repository head
+    type:     git
+    location: https://github.com/pnotequalnp/dynamic
+
+library
+    exposed-modules:  Dynamic
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    ghc-options:      -Wall -Wcompat -Werror=incomplete-patterns
+    build-depends:
+        base >=4.14 && <5.0,
+        exceptions ^>=0.10.4

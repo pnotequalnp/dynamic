@@ -1,0 +1,68 @@
+name: "Release"
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    name: Upload Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        path: code
+
+    - name: Checkout Docs
+      uses: actions/checkout@v3
+      with:
+        ref: doc
+        path: doc
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v15
+      with:
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          extra-substituters = file://${{ github.workspace }}/store-cache?trusted=true
+
+    - name: Set up store cache
+      uses: actions/cache@v2
+      with:
+        path: store-cache
+        key: nix-store
+
+    - name: Generate documentation
+      run: nix build ./code#default.doc
+
+    - name: Prepare documentation
+      run: |
+        rm -rf ./doc/docs
+        cp -r ./result-doc/share/doc/*/html ./doc/docs
+
+    - name: Upload documentation
+      uses: EndBug/add-and-commit@v9
+      with:
+        cwd: ./doc
+        add: ./docs
+        message: Upload documentation
+        default_author: github_actions
+        committer_name: GitHub Actions
+        committer_email: actions@github.com
+
+    - name: Get Version
+      id: get_version
+      run: "echo ::set-output name=version::$(cut -c 11- <<< ${{ github.ref }})"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: false
+        prerelease: false

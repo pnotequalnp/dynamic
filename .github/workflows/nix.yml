@@ -1,0 +1,46 @@
+name: "Nix CI"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.4.0
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v15
+      with:
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          extra-substituters = file://${{ github.workspace }}/store-cache?trusted=true
+    - name: Set up store cache
+      uses: actions/cache@v2
+      with:
+        path: store-cache
+        key: nix-store
+
+    - name: Build and run tests (GHC 9.2.1)
+      run: nix build .#ghc921
+
+    - name: Build and run tests (GHC 8.10.7)
+      run: nix build .#ghc8107
+
+    - name: Check Cabal file
+      run: nix develop .#ci -c cabal check
+
+    - name: Check flake formatting
+      run: nix develop .#ci -c nixfmt -c flake.nix
+
+    - name: Update store cache
+      run: |
+        sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#devShells.x86_64-linux.ci
+        sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#ghc921.env
+        sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#ghc8107.env
