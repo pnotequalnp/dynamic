@@ -27,7 +27,7 @@
         devShell = lsp: hs:
           hs.shellFor {
             packages = hsPkgs: with hsPkgs; [ dynamic ];
-            nativeBuildInputs = tools
+            nativeBuildInputs = tools ++ [ hs.doctest ]
               ++ optional lsp [ hs.haskell-language-server ];
           };
       in {
@@ -42,6 +42,7 @@
           ghc921 = devShell true ghc921;
           ghc8107 = devShell true ghc8107;
           ci = devShell false ghc921;
+          ci8107 = devShell false ghc8107;
         };
       }) // {
         overlays.default = overlay;

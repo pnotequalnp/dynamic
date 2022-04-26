@@ -27,14 +27,31 @@ jobs:
         path: store-cache
         key: nix-store
 
-    - name: Build and run tests (GHC 9.2.1)
-      run: nix build .#ghc921
+    - name: Build (GHC 9.2.1)
+      run: |
+        nix build .#ghc921
 
-    - name: Build and run tests (GHC 8.10.7)
-      run: nix build .#ghc8107
+    - name: Run doctests (GHC 9.2.1)
+      run: |
+        shopt -s globstar
+        nix develop .#ci -c doctest src/**/*.hs
+
+    - name: Build (GHC 8.10.7)
+      run: |
+        nix build .#ghc8107
+
+    - name: Run doctests (GHC 8.10.7)
+      run: |
+        shopt -s globstar
+        nix develop .#ci8107 -c doctest src/**/*.hs
 
     - name: Check Cabal file
       run: nix develop .#ci -c cabal check
+
+    - name: Check source formatting
+      run: |
+        shopt -s globstar
+        nix develop .#ci -c fourmolu --cabal-default-extensions --mode check ./src/**/*.hs
 
     - name: Check flake formatting
       run: nix develop .#ci -c nixfmt -c flake.nix
@@ -42,5 +59,6 @@ jobs:
     - name: Update store cache
       run: |
         sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#devShells.x86_64-linux.ci
+        sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#devShells.x86_64-linux.ci8107
         sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#ghc921.env
         sudo $(command -v nix) copy --to file://${PWD}/store-cache\?compression=none .#ghc8107.env
