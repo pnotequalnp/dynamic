@@ -22,6 +22,7 @@ module Dynamic (
   (.@),
   fromDynamic,
   fromDynamicOr,
+  dynamicRep,
   IsDynamic (..),
   DynamicTypeError (..),
 ) where
@@ -29,7 +30,7 @@ module Dynamic (
 import Control.Monad.Catch (Exception, MonadThrow (..))
 import Data.Kind (Type)
 import Data.Maybe (fromMaybe)
-import Type.Reflection (TypeRep, Typeable, eqTypeRep, typeRep, typeRepKind, pattern Fun, type (:~~:) (..))
+import Type.Reflection (TypeRep, Typeable, eqTypeRep, typeRep, typeRepKind, pattern Fun, type (:~~:) (..), SomeTypeRep (SomeTypeRep))
 
 data Dynamic :: Type where
   MkDynamic :: TypeRep a -> a -> Dynamic
@@ -88,3 +89,6 @@ fromDynamic (MkDynamic t x)
 
 fromDynamicOr :: Typeable a => a -> Dynamic -> a
 fromDynamicOr x = fromMaybe x . fromDynamic
+
+dynamicRep :: Dynamic -> SomeTypeRep
+dynamicRep (MkDynamic t _) = SomeTypeRep t
