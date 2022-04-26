@@ -35,7 +35,10 @@ data Dynamic :: Type where
   MkDynamic :: TypeRep a -> a -> Dynamic
 
 pattern Dynamic :: forall a. Typeable a => a -> Dynamic
-pattern Dynamic x <- (\case MkDynamic t x | Just HRefl <- t `eqTypeRep` typeRep @a -> x -> x)
+pattern Dynamic x <- (\case MkDynamic t x
+                              | Just HRefl <- t `eqTypeRep` typeRep @a -> Just x
+                              | otherwise -> Nothing
+                     -> Just x)
   where Dynamic x = MkDynamic typeRep x
 
 instance Show Dynamic where
